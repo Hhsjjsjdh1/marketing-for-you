@@ -958,8 +958,14 @@
   }
   async function sheetPost(action, data) {
     try {
-      const encoded = encodeURIComponent(JSON.stringify(data));
-      const res = await fetch(`${SHEET_API}?action=${action}&data=${encoded}`);
+      const params = new URLSearchParams();
+      params.append('action', action);
+      params.append('data', JSON.stringify(data));
+      const res = await fetch(SHEET_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+      });
       return await res.json();
     } catch(e) { return { ok: false }; }
   }
@@ -1497,6 +1503,7 @@
   async function saveFeatures() {
     const features = getAdminFeatures();
     await sheetPost('setFeatures', features);
+    localStorage.setItem('mfy_features', JSON.stringify(features));
     renderFeaturesOnPage(features);
     const msg = document.getElementById('featuresSaveMsg');
     msg.style.display = 'block';
@@ -1504,8 +1511,14 @@
   }
 
   async function loadFeatures() {
+    // Show cached version instantly
+    const cached = localStorage.getItem('mfy_features');
+    if (cached) renderFeaturesOnPage(JSON.parse(cached));
+
+    // Then fetch from Sheets and update
     const res = await sheetGet('getFeatures');
     const features = (res.ok && res.features) ? res.features : DEFAULT_FEATURES;
+    localStorage.setItem('mfy_features', JSON.stringify(features));
     renderFeaturesOnPage(features);
     renderAdminFeatures(features);
   }
