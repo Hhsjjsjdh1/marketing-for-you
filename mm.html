@@ -958,10 +958,8 @@
   }
   async function sheetPost(action, data) {
     try {
-      const res = await fetch(`${SHEET_API}?action=${action}`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      const encoded = encodeURIComponent(JSON.stringify(data));
+      const res = await fetch(`${SHEET_API}?action=${action}&data=${encoded}`);
       return await res.json();
     } catch(e) { return { ok: false }; }
   }
