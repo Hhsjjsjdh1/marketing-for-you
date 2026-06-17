@@ -1207,7 +1207,12 @@
     if(ratingsRes.ok) ratings = ratingsRes.ratings || [];
     // Refresh features in admin panel
     const featRes = await sheetGet('getFeatures');
-    const features = (featRes.ok && featRes.features) ? featRes.features : DEFAULT_FEATURES;
+    const rawFeatures = (featRes.ok && featRes.features) ? featRes.features : {};
+    const features = {
+      photo:   rawFeatures.photo   || [],
+      video:   rawFeatures.video   || [],
+      package: rawFeatures.package || []
+    };
     renderAdminFeatures(features);
 
     document.getElementById('totalOrders').textContent = orders.length;
@@ -1448,17 +1453,18 @@
 
   // ===== FEATURES MANAGEMENT =====
   const DEFAULT_FEATURES = {
-    photo:   ['تصميم احترافي عالي الجودة','مناسبة لجميع المنصات','تسليم خلال 24 ساعة','تعديل واحد مجاني'],
-    video:   ['فيديو قصير احترافي','مونتاج + موسيقى + نصوص','مناسب لتيك توك وإنستغرام','تسليم خلال 48 ساعة','تعديلان مجانيان'],
-    package: ['فيديو إعلاني كامل','3 صور إعلانية','نصوص إعلانية جاهزة','تسليم خلال 72 ساعة','تعديلات غير محدودة']
+    photo:   [],
+    video:   [],
+    package: []
   };
 
   function renderFeaturesOnPage(features) {
     ['photo','video','package'].forEach(key => {
       const ul = document.getElementById('features-' + key);
       if(!ul) return;
-      const list = features[key] || DEFAULT_FEATURES[key];
+      const list = features[key] || [];
       ul.innerHTML = list.map(f => `<li>${f}</li>`).join('');
+      ul.style.display = list.length > 0 ? '' : 'none';
     });
   }
 
@@ -1517,7 +1523,12 @@
 
     // Then fetch from Sheets and update
     const res = await sheetGet('getFeatures');
-    const features = (res.ok && res.features) ? res.features : DEFAULT_FEATURES;
+    const raw = (res.ok && res.features) ? res.features : {};
+    const features = {
+      photo:   raw.photo   || [],
+      video:   raw.video   || [],
+      package: raw.package || []
+    };
     localStorage.setItem('mfy_features', JSON.stringify(features));
     renderFeaturesOnPage(features);
     renderAdminFeatures(features);
